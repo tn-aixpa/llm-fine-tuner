@@ -4,8 +4,9 @@ import huggingface_hub
 import wandb
 import argparse
 import utils
+import os
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from trl import SFTTrainer
+from trl import SFTTrainer,SFTConfig
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
@@ -54,10 +55,7 @@ def main():
     parser.add_argument('--weight_decay', type=float, required=True, help='Weight decay for optimizer')
     parser.add_argument('--warmup_ratio', type=float, required=True, help='Warmup ratio for learning rate schedule')
 
-    # Guidelines and exlude
-    parser.add_argument('--guidelines', type=int, default=0, help='If the prompt has guidelines in it')
-    parser.add_argument('--previous_messages', type=int, default=0, help='If the prompt has previous messages in it')
-
+ 
     # Logging and checkpointing
     parser.add_argument('--logging_steps', type=int, required=True, help='Number of steps between logging')
     parser.add_argument('--eval_steps', type=int, required=True, help='Number of steps between evaluations')
@@ -67,6 +65,7 @@ def main():
 
     # Logging in Hugging Face and WandB
     huggingface_hub.login(token=args.hf_token)
+
     wandb.login(key=args.wandb_key)
 
     wandb.init(
@@ -133,13 +132,27 @@ def main():
     with open(args.train_data_path, "r") as file:
         data = json.load(file)
         train_dataset = Dataset.from_list(data)
+        train_dataset = train_dataset.shuffle(seed=42)
 
     # train_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
+
+
+
 
     with open(args.dev_data_path, "r") as file:
         data = json.load(file)
         dev_dataset = Dataset.from_list(data)
+        dev_dataset = dev_dataset.shuffle(seed=42)
 
+    # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+    # max_length = max(len(tokenizer(entry["text"])["input_ids"]) for entry in train_dataset)
+    # print(f"Longest tokenized entry length: {max_length}")
+    # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+    # max_length = max(len(tokenizer(entry["text"])["input_ids"]) for entry in dev_dataset)
+    # print(f"Longest tokenized entry length: {max_length}")
+    # exit()
+
+    
     # dev_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
 
     print(train_dataset[0]["text"])
@@ -147,40 +160,70 @@ def main():
     # Setting training arguments
     max_seq_length = args.max_sequence_length
 
-    # early_stopping = EarlyStoppingCallback(
-    #     early_stopping_patience=args.early_stopping_patience
+    early_stopping = EarlyStoppingCallback(
+        early_stopping_patience=args.early_stopping_patience
+    )
+
+    # trainer = SFTTrainer(
+    #     model=model,
+    #     tokenizer=tokenizer,
+    #     train_dataset=train_dataset,
+    #     eval_dataset    =dev_dataset,
+    #     dataset_text_field="text",
+    #     max_seq_length=max_seq_length,
+    #     #callbacks=[early_stopping],
+    #     args=TrainingArguments(
+    #         report_to="wandb",
+    #         learning_rate=args.learning_rate,
+    #         lr_scheduler_type=args.scheduler_type,
+    #         per_device_train_batch_size=args.train_batch_size,
+    #         per_device_eval_batch_size=args.eval_batch_size,
+    #         gradient_accumulation_steps=args.grad_accum_steps,
+    #         num_train_epochs=args.num_epochs,
+    #         logging_steps=args.logging_steps,
+    #         weight_decay=args.weight_decay,
+    #         warmup_ratio=args.warmup_ratio,
+    #         output_dir=args.output_dir,
+    #         seed=0,
+    #         eval_strategy="steps",
+    #         eval_steps=args.eval_steps,
+    #         save_strategy="steps",
+    #         save_steps=args.save_steps,
+    #         load_best_model_at_end=True,
+    #         metric_for_best_model="eval_loss"
+    #     ),
     # )
 
     trainer = SFTTrainer(
-        model=model,
-        tokenizer=tokenizer,
-        train_dataset=train_dataset,
-        eval_dataset    =dev_dataset,
-        dataset_text_field="text",
-        max_seq_length=max_seq_length,
-        #callbacks=[early_stopping],
-        args=TrainingArguments(
-            report_to="wandb",
-            learning_rate=args.learning_rate,
-            lr_scheduler_type=args.scheduler_type,
-            per_device_train_batch_size=args.train_batch_size,
-            per_device_eval_batch_size=args.eval_batch_size,
-            gradient_accumulation_steps=args.grad_accum_steps,
-            num_train_epochs=args.num_epochs,
-            logging_steps=args.logging_steps,
-            weight_decay=args.weight_decay,
-            warmup_ratio=args.warmup_ratio,
-            output_dir=args.output_dir,
-            seed=0,
-            eval_strategy="steps",
-            eval_steps=args.eval_steps,
-            save_strategy="steps",
-            save_steps=args.save_steps,
-            load_best_model_at_end=True,
-            metric_for_best_model="eval_loss"
-        ),
-    )
-
+            model=model,
+            processing_class=tokenizer,
+            train_dataset=train_dataset,
+            eval_dataset=dev_dataset,
+            callbacks=[early_stopping],
+            args=SFTConfig(
+                max_seq_length=max_seq_length,
+                dataset_text_field="text",
+                report_to="wandb",
+                learning_rate=args.learning_rate,
+                lr_scheduler_type=args.scheduler_type,
+                per_device_train_batch_size=args.train_batch_size,
+                per_device_eval_batch_size=args.eval_batch_size,
+                gradient_accumulation_steps=args.grad_accum_steps,
+                num_train_epochs=args.num_epochs,
+                logging_steps=args.logging_steps,
+                weight_decay=args.weight_decay,
+                warmup_ratio=args.warmup_ratio,
+                output_dir=args.output_dir,
+                seed=0,
+                eval_strategy="steps",
+                eval_steps=args.eval_steps,
+                save_strategy="steps",
+                save_steps=args.save_steps,
+                load_best_model_at_end=True,
+                metric_for_best_model="eval_loss"
+            ),
+        )
+    
     # Launch training and save best model
     trainer.train()
 

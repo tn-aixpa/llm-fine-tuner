@@ -1,58 +1,31 @@
-Guide on how to lunch codes
+# Run the training
 
-# Usage
+Before building the docker, in `run_training.sh` add:
 
-`pip install -f requirements.txt`
+- Add your HF_TOKEN and WANDB_KEY tokens (the key need to have the __permission to download__  Llama-3.1-8B-Instruct model. Authorization can be asked at this link: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct )
+- Change The model and dataset paths (if different) and the output names
+- Change the Training parameters as needed (eg with an appropriate batch size for your gpu)
 
-To add all dependencies needed in these files
-
-then create a file named 'config.yaml'
-
-# config.yaml
-
-The `config.yaml` contains the following:
+To run the training
 
 ```
-hf_token: "HUGGINGFACE_TOKEN"
-wandb_token: "WANDB_TOKEN"
+docker build  --rm -t aixpa-training .
 ```
 
-Replace `HUGGINGFACE_TOKEN` with your Meta Llama 3.1B Instruct's token claimed [in the following HuggingFace page](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
-Replace `WANDB_TOKEN` with your token for WanDB. This allows to see the progress of the finetuning
-
-
-# data_cleaner.py
-
-This file is used to create the training data from the starting dialogue JSON files and the matching documents.
-
-To launch the script write in console:
-
-```python3 llm_data_preparation.py```
-
-
-# Llama_sft_training.py and sft_training.sh
-
-With these, it is possible to start the finetuning of the Llama model.
-
-all the models hyperparameters can be edited within `sft_training.sh`.
-
-To launch the finetuning, write in console:
-
 ```
-chmod -x sft_training.sh
-./sft_training.sh
+docker run -d --name aixpa-training-0 —gpus "device=o" -v "$PWD":/code --shm-size=48gb aixpa-training
 ```
 
-# interactive_model_interrogation.ipynb
+To check the progression status:
+```
+docker logs aixpa-training-0
+```
 
-This notebook allows to test and use interactively the finetuned model.
+> [!NOTE] 
+> After running the docker it will show __the logs will not show any update for some minutes__ while it is downloading llama 3.1 model from huggingface
+> To check it the model is downloading, it is saved within the docker in `/root/.cache/huggingface` (the script needs to download about 15GB)
 
-To launch, ensure that you have Jupyter notebook installed. If you do not have it, write
+# Models
 
-```pip install notebook```
+All the checkpoint are saved in the `checkpoints` folder. The best one is saved in `weights` folder (unless renamed in `run_training.sh`
 
-You can then launch the following command
-
-```jupyter notebook```
-
-This will open a page in your browser. Navigate to the location where `interactive_model_interrogation.ipynb` is stored and open it. From there, execute each cell and follow any written instruction.

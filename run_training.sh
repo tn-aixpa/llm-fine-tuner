@@ -10,10 +10,9 @@ if [ "$FROM_BASE" -eq 0 ]; then
     model="${model}-Instruct"
 fi
 
-
 # Hugging Face API token
-HF_TOKEN="" # ADD YOUR TOKEN
-WANDB_KEY="" # ADD YOUR TOKEN
+HF_TOKEN=" " # ADD YOUR TOKEN
+WANDB_KEY=" " # ADD YOUR TOKEN
 
 # Model and dataset paths
 MODEL_ID="meta-llama/${model}"
@@ -39,7 +38,6 @@ GRAD_ACCUM_STEPS=3
 NUM_EPOCHS=5
 WEIGHT_DECAY=0.01
 WARMUP_RATIO=0.03
-
 
 # Logging and checkpointing
 LOGGING_STEPS=20
@@ -89,31 +87,36 @@ echo "  Logging Steps: $LOGGING_STEPS"
 echo "  Eval Steps: $EVAL_STEPS"
 echo "  Save Steps: $SAVE_STEPS"
 
-# Execute the Python script with the parameters
-python Llama_sft_training.py \
-    --hf_token $HF_TOKEN \
-    --wandb_key $WANDB_KEY \
-    --model_id $MODEL_ID \
-    --train_data_path $TRAIN_DATA_PATH \
-    --dev_data_path $DEV_DATA_PATH \
-    --output_dir $OUTPUT_DIR \
-    --final_dir $FINAL_DIR \
-    --project_name $PROJECT_NAME \
-    --run_name $RUN_NAME \
-    --quantization $QUANTIZATION \
-    --lora_rank $LORA_RANK \
-    --lora_alpha $LORA_ALPHA \
-    --lora_dropout $LORA_DROPOUT \
-    --max_sequence_length $MAX_SEQUENCE_LENGTH \
-    --early_stopping_patience $EARLY_STOPPING_PATIENCE \
-    --learning_rate $LEARNING_RATE \
-    --scheduler_type $SCHEDULER_TYPE \
-    --train_batch_size $TRAIN_BATCH_SIZE \
-    --eval_batch_size $EVAL_BATCH_SIZE \
-    --grad_accum_steps $GRAD_ACCUM_STEPS \
-    --num_epochs $NUM_EPOCHS \
-    --logging_steps $LOGGING_STEPS \
-    --weight_decay $WEIGHT_DECAY \
-    --warmup_ratio $WARMUP_RATIO \
-    --eval_steps $EVAL_STEPS \
-    --save_steps $SAVE_STEPS
+# Set PYTHONPATH to include /data (mapped from $PWD)
+export PYTHONPATH=/data:$PYTHONPATH
+
+# Execute the train() function directly
+python -c "from Llama_sft_training import train; train(\
+    hf_token='$HF_TOKEN',\
+    wandb_key='$WANDB_KEY',\
+    model_id='$MODEL_ID',\
+    from_base=$FROM_BASE,\
+    train_data_path='$TRAIN_DATA_PATH',\
+    dev_data_path='$DEV_DATA_PATH',\
+    output_dir='$OUTPUT_DIR',\
+    final_dir='$FINAL_DIR',\
+    project_name='$PROJECT_NAME',\
+    run_name='$RUN_NAME',\
+    quantization=$QUANTIZATION,\
+    lora_rank=$LORA_RANK,\
+    lora_alpha=$LORA_ALPHA,\
+    lora_dropout=$LORA_DROPOUT,\
+    max_sequence_length=$MAX_SEQUENCE_LENGTH,\
+    early_stopping_patience=$EARLY_STOPPING_PATIENCE,\
+    learning_rate=$LEARNING_RATE,\
+    scheduler_type='$SCHEDULER_TYPE',\
+    train_batch_size=$TRAIN_BATCH_SIZE,\
+    eval_batch_size=$EVAL_BATCH_SIZE,\
+    grad_accum_steps=$GRAD_ACCUM_STEPS,\
+    num_epochs=$NUM_EPOCHS,\
+    weight_decay=$WEIGHT_DECAY,\
+    warmup_ratio=$WARMUP_RATIO,\
+    logging_steps=$LOGGING_STEPS,\
+    eval_steps=$EVAL_STEPS,\
+    save_steps=$SAVE_STEPS\
+)"

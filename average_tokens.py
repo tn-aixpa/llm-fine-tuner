@@ -67,5 +67,5 @@ def calculate_token_stats(
 # if __name__ == "__main__":
 #     dataset_path = "data/train_data.json"
 #     model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-#     hf_token = "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"
+#     hf_token = "" #Insert your huggingface token
 #     total, avg = calculate_token_stats(dataset_path, model_id, hf_token)

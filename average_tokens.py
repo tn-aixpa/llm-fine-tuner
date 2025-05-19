@@ -1,42 +1,71 @@
 import json
 import torch
 import huggingface_hub
-from transformers import (
-    AutoTokenizer
-)
+from transformers import AutoTokenizer
 from datasets import Dataset
 from tqdm import tqdm
-import huggingface_hub
 import os
+import sys
 
-def main():
-    huggingface_hub.login("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")
+def calculate_token_stats(
+    dataset_path: str,
+    model_id: str = "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    hf_token: str = None
+) -> tuple[int, float]:
+    """
+    Calculate total and average number of tokens in the dataset.
 
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3.1-8B-Instruct")
+    Args:
+        dataset_path (str): Path to the JSON dataset file
+        model_id (str): Model ID for the tokenizer (default: "meta-llama/Meta-Llama-3.1-8B-Instruct")
+        hf_token (str, optional): Hugging Face API token for authentication
 
+    Returns:
+        tuple[int, float]: (total_tokens, average_tokens)
+    """
+    # Login to Hugging Face if token is provided
+    if hf_token:
+        try:
+            huggingface_hub.login(hf_token)
+        except Exception as e:
+            print(f"Error logging in to Hugging Face. Check your token.")
+            sys.exit(1)
+
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
     tokenizer.pad_token = "<|finetune_right_pad_id|>"
     tokenizer.padding_side = "right"
 
-    with open("data/train_data.json", "r") as file:
+    # Load dataset
+    if not os.path.exists(dataset_path):
+        raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
+    with open(dataset_path, "r") as file:
         data = json.load(file)
-        train_dataset = Dataset.from_list(data)
+        dataset = Dataset.from_list(data)
 
-    print(train_dataset[6]["text"])
-
+    # Calculate tokens
     tokens_count = 0
-    lengths = [] 
-
-    for instance in tqdm(train_dataset):
+    lengths = []
+    for instance in tqdm(dataset, desc="Processing dataset"):
         input_id = tokenizer(instance["text"], return_tensors="pt", truncation=True)
-        tokens_count += len(input_id["input_ids"][0])
-        lengths.append(len(input_id["input_ids"][0]))
+        token_len = len(input_id["input_ids"][0])
+        tokens_count += token_len
+        lengths.append(token_len)
 
-    print(lengths)
+    average_tokens = tokens_count / len(dataset) if len(dataset) > 0 else 0
 
-    print("Total number of tokens", tokens_count)
+    # Print results (for debugging/logging)
+    print(f"Dataset: {dataset_path}")
+    print(f"Sample text: {dataset[6]['text']}")
+    print(f"Token lengths: {lengths}")
+    print(f"Total number of tokens: {tokens_count}")
+    print(f"Average number of tokens: {average_tokens}")
 
-    print("Average numeber of tokens", tokens_count/len(train_dataset))
+    return tokens_count, average_tokens
 
-
-if __name__ == "__main__":
-    main()
+#     # For local testing/debugging
+# if __name__ == "__main__":
+#     dataset_path = "data/train_data.json"
+#     model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+#     hf_token = "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"
+#     total, avg = calculate_token_stats(dataset_path, model_id, hf_token)

@@ -1,1 +1,1 @@
-docker run -d  --gpus '"device=1"' --rm -ti --shm-size=48gb -v $PWD:/data --name aixpa-menini-land-1 aixpa-menini-land
+docker run -d --name aixpa-training-0 --gpus "device=0" -v "$PWD":/code --rm -ti --shm-size=48gb aixpa-training

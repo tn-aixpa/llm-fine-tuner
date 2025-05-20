@@ -11,13 +11,9 @@ AIxPA
  The LLM Finetuner supports:
 
 - **Efficient Fine-Tuning:** Utilizes **LoRA (Low-Rank Adaptation)** for parameter-efficient training.
-- 
 - **4-Bit Quantization:** Reduces memory footprint for training and inference.
-- 
 - **JSON Dataset Support:** Processes datasets in JSON format with Llama-3.1 chat template.
-- 
 - **Docker Support:** Optional GPU-enabled Docker container for reproducible environments.
-- 
 - **WandB Integration:** Tracks training metrics with Weights & Biases.
 
 

@@ -23,7 +23,7 @@ Tool usage documentation [here](./RUN.md).
 
 ## How To
 
-- [Data Overview, Dataset Preparation and Token Count Analysis.](./data/DATASET.md)
+- [Data Overview, Dataset Preparation and Token Count Analysis.](./DATASET.md)
 
 
 ## License

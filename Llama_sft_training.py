@@ -17,7 +17,7 @@ from datasets import Dataset, load_dataset
 import sys
 
 def train(
-    hf_token: str,
+    hf_token: str = None,
     model_id: str,
     from_base: int,
     train_data_path: str,
@@ -49,7 +49,7 @@ def train(
     Train the LLM model with the given dataset and configuration.
 
     Args:
-        hf_token (str): Hugging Face API token
+        hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         model_id (str): Model ID
         from_base (int): From Base? (0 or 1)
         train_data_path (str): Training dataset path
@@ -78,11 +78,12 @@ def train(
         wandb_key (str): Weights & Biases API key
     """
     # Logging in Hugging Face and WandB
-    try:
-        huggingface_hub.login(token=hf_token)
-    except Exception as e:
-        print(f"Error logging into Hugging Face. Check your token.")
-        sys.exit(1)
+    if hf_token is not None:
+        try:
+            huggingface_hub.login(token=hf_token)
+        except Exception as e:
+            print(f"Error logging into Hugging Face. Check your token.")
+            sys.exit(1)
         
     if wandb_key is not None:
         try:
@@ -146,10 +147,10 @@ def train(
     model = get_peft_model(model, peft_config)
 
     # Load datasets
-    with open(train_data_path, "r") as file:
-        data = json.load(file)
-        train_dataset = Dataset.from_list(data)
-        train_dataset = train_dataset.shuffle(seed=42)
+    # with open(train_data_path, "r") as file:
+    #     data = json.load(file)
+    #     train_dataset = Dataset.from_list(data)
+    #     train_dataset = train_dataset.shuffle(seed=42)
         
     # train_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
 

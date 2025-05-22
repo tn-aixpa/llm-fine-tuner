@@ -16,8 +16,8 @@ WANDB_KEY=" " # ADD YOUR TOKEN
 
 # Model and dataset paths
 MODEL_ID="meta-llama/${model}"
-TRAIN_DATA_PATH="data/data_AmiciFamiglia_only_ground/train.json"
-DEV_DATA_PATH="data/data_AmiciFamiglia_only_ground/validation.json"
+TRAIN_DATA_PATH="data_AmiciFamiglia_only_ground/train.json"
+DEV_DATA_PATH="data_AmiciFamiglia_only_ground/validation.json"
 
 # Quantization (0, 4)
 QUANTIZATION=4

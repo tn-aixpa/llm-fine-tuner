@@ -1,7 +1,11 @@
 
 ## Data Overview and Token Count Analysis
 
-The datasets used to train the chatbot are available in different configuration.
+The datasets used to train the chatbot are publicly available on Hugging Face under:
+
+🔗 [LanD-FBK/AIxPA_Dialogue_Dataset](https://huggingface.co/datasets/LanD-FBK/AIxPA_Dialogue_Dataset)
+
+They are organized in different configurations:
 
 AmiciFamiglia and Comuni contain respectively dialogues on Piani Famiglia and generic administrative documents. Folders with all contain both.
 

@@ -20,6 +20,7 @@ def train(
     hf_token: str = None,
     model_id: str,
     from_base: int,
+    hf_dataset_name = str,
     train_data_path: str,
     dev_data_path: str,
     output_dir: str,
@@ -52,6 +53,7 @@ def train(
         hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         model_id (str): Model ID
         from_base (int): From Base? (0 or 1)
+        hf_dataset_name (str): Name of the dataset on Hugging Face Hub.
         train_data_path (str): Training dataset path
         dev_data_path (str): Dev dataset path
         output_dir (str): Output directory for model and checkpoints
@@ -162,7 +164,7 @@ def train(
     # dev_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
 
     try:
-        dataset = load_dataset("LanD-FBK/AIxPA_Dialogue_Dataset", data_files={
+        dataset = load_dataset(hf_dataset_name, data_files={
         "train": train_data_path,
         "validation": dev_data_path,
         })
@@ -218,6 +220,7 @@ def train(
 #         wandb_key=" ",
 #         model_id="meta-llama/Llama-3.1-8B-Instruct",
 #         from_base=0,
+#         hf_dataset_name="LanD-FBK/AIxPA_Dialogue_Dataset",
 #         train_data_path="data_AmiciFamiglia_only_ground/train.json",
 #         dev_data_path="data_AmiciFamiglia_only_ground/validation.json",
 #         output_dir="checkpoints/Llama-3.1-8B-Instruct/AmiciFamiglia_only_ground",

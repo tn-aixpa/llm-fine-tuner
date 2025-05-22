@@ -5,8 +5,8 @@ A lightweight framework for fine-tuning [`Llama-3.1-8B-Instruct`](https://huggin
 AIxPA
 
 - ``kind``: 
-- ``ai``: 
-- ``domain``:  
+- ``ai``: NLP
+- ``domain``:  PA
 
  The LLM Finetuner supports:
 

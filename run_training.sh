@@ -16,6 +16,7 @@ WANDB_KEY=" " # ADD YOUR TOKEN
 
 # Model and dataset paths
 MODEL_ID="meta-llama/${model}"
+HF_DATASET_NAME="LanD-FBK/AIxPA_Dialogue_Dataset"
 TRAIN_DATA_PATH="data_AmiciFamiglia_only_ground/train.json"
 DEV_DATA_PATH="data_AmiciFamiglia_only_ground/validation.json"
 
@@ -63,6 +64,7 @@ clear
 # Echoing the parameters for visibility
 echo "Launching training with the following parameters:"
 echo "  Model ID: $MODEL_ID"
+echo "  HF Dataset Name: $HF_DATASET_NAME"
 echo "  Train Data Path: $TRAIN_DATA_PATH"
 echo "  Dev Data Path: $DEV_DATA_PATH"
 echo "  Output Directory: $OUTPUT_DIR"
@@ -96,6 +98,7 @@ python -c "from Llama_sft_training import train; train(\
     wandb_key='$WANDB_KEY',\
     model_id='$MODEL_ID',\
     from_base=$FROM_BASE,\
+    hf_dataset_name=$HF_DATASET_NAME,\
     train_data_path='$TRAIN_DATA_PATH',\
     dev_data_path='$DEV_DATA_PATH',\
     output_dir='$OUTPUT_DIR',\

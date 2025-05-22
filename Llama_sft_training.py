@@ -13,7 +13,7 @@ from transformers import (
     TrainingArguments,
     EarlyStoppingCallback,
 )
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 import sys
 
 def train(
@@ -150,11 +150,27 @@ def train(
         data = json.load(file)
         train_dataset = Dataset.from_list(data)
         train_dataset = train_dataset.shuffle(seed=42)
+        
+    # train_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
 
-    with open(dev_data_path, "r") as file:
-        data = json.load(file)
-        dev_dataset = Dataset.from_list(data)
-        dev_dataset = dev_dataset.shuffle(seed=42)
+    # with open(dev_data_path, "r") as file:
+    #     data = json.load(file)
+    #     dev_dataset = Dataset.from_list(data)
+    #     dev_dataset = dev_dataset.shuffle(seed=42)
+
+    # dev_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
+
+    try:
+        dataset = load_dataset("LanD-FBK/AIxPA_Dialogue_Dataset", data_files={
+        "train": train_data_path,
+        "validation": dev_data_path,
+        })
+        train_dataset = dataset["train"].shuffle(seed=42)
+        dev_dataset = dataset["validation"].shuffle(seed=42)
+    except Exception as e:
+        print(f"Error loading dataset. Check your data paths.")
+        sys.exit(1)
+
 
     # Setting training arguments
     max_seq_length = max_sequence_length
@@ -201,8 +217,8 @@ def train(
 #         wandb_key=" ",
 #         model_id="meta-llama/Llama-3.1-8B-Instruct",
 #         from_base=0,
-#         train_data_path="data/data_AmiciFamiglia_only_ground/train.json",
-#         dev_data_path="data/data_AmiciFamiglia_only_ground/validation.json",
+#         train_data_path="data_AmiciFamiglia_only_ground/train.json",
+#         dev_data_path="data_AmiciFamiglia_only_ground/validation.json",
 #         output_dir="checkpoints/Llama-3.1-8B-Instruct/AmiciFamiglia_only_ground",
 #         final_dir="weights/Llama-3.1-8B-Instruct/run_AmiciFamiglia_only_groundfamily_ground",
 #         project_name="AmiciFamiglia_only_groundd",

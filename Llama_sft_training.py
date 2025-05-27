@@ -17,9 +17,9 @@ from datasets import Dataset, load_dataset
 import sys
 
 def train(
-    model_id: str,
+     model_id: str,
     from_base: int,
-    hf_dataset_name = str,
+    hf_dataset_name: str,
     train_data_path: str,
     dev_data_path: str,
     output_dir: str,

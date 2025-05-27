@@ -11,9 +11,9 @@ The training is initiated via the `train()` function in [`Llama_sft_training.py`
   
 - API Tokens:
 
-    - Hugging Face token with access to Llama-3.1-8B-Instruct.Create one [here](https://huggingface.co/settings/tokens)
+    - Hugging Face token with access to Llama-3.1-8B-Instruct.Create one [here](https://huggingface.co/settings/tokens). If you want to use public model, you don't need this parameter.
 
-    - Weights & Biases API key for logging (optional).Create one [here](https://wandb.ai/home)
+    - Weights & Biases API key for logging (optional).Create one [here](https://wandb.ai/home). This parameter is optional.
 
 
 ## ⚙️ Setup
@@ -62,9 +62,9 @@ Use the `train()` function in `Llama_sft_training.py`:
 
 ```python
 def train(
-    hf_token: str,
     model_id: str,
     from_base: int,
+    hf_dataset_name: str,
     train_data_path: str,
     dev_data_path: str,
     output_dir: str,
@@ -88,6 +88,7 @@ def train(
     logging_steps: int,
     eval_steps: int,
     save_steps: int,
+    hf_token: str = None,
     wandb_key: str = None
 )
 ```
@@ -100,6 +101,7 @@ If you want to run locally, Update run_training.sh with your paths and parameter
 HF_TOKEN="your_hf_token"
 WANDB_KEY="your_wandb_key"
 MODEL_ID="meta-llama/Llama-3.1-8B-Instruct"
+HF_DATASET_NAME="LanD-FBK/AIxPA_Dialogue_Dataset",
 TRAIN_DATA_PATH="l_data/data_AmiciFamiglia_only_ground/train.json"
 DEV_DATA_PATH="l_data/data_AmiciFamiglia_only_ground/validation.json"
 OUTPUT_DIR="checkpoints/Llama-3.1-8B-Instruct/AmiciFamiglia_only_ground"

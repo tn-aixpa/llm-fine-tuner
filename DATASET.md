@@ -12,6 +12,15 @@ AmiciFamiglia and Comuni contain respectively dialogues on Piani Famiglia and ge
 All the 3 instances are provided in 2 versions. The first one contains the entire documents on which the dialogues are based on , while the only ground version is smaller and contains only the portions of documents relevant for the dialogue.
 
 
+**Note:** If you want to use your own dataset, you should first upload it to Hugging Face Hub.  
+Then, set the following parameters accordingly:
+
+- `hf_dataset_name`: the name of your dataset on Hugging Face (e.g., `"your-username/your-dataset"`)
+- `train_data_path`: path to the training split (e.g., `"data/train.json"`)
+- `dev_data_path`: path to the validation split (e.g., `"data/val.json"`)
+
+
+
 ## 📝 Dataset Format
 
 Datasets must be JSON files (e.g., `train.json`, `validation.json`) with entries following the Llama-3.1 chat template:

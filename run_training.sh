@@ -98,7 +98,7 @@ python -c "from Llama_sft_training import train; train(\
     wandb_key='$WANDB_KEY',\
     model_id='$MODEL_ID',\
     from_base=$FROM_BASE,\
-    hf_dataset_name=$HF_DATASET_NAME,\
+    hf_dataset_name='$HF_DATASET_NAME',\
     train_data_path='$TRAIN_DATA_PATH',\
     dev_data_path='$DEV_DATA_PATH',\
     output_dir='$OUTPUT_DIR',\

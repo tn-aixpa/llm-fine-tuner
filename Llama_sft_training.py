@@ -50,7 +50,6 @@ def train(
     Train the LLM model with the given dataset and configuration.
 
     Args:
-        hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         model_id (str): Model ID
         from_base (int): From Base? (0 or 1)
         hf_dataset_name (str): Name of the dataset on Hugging Face Hub.
@@ -77,6 +76,7 @@ def train(
         logging_steps (int): Number of steps between logging
         eval_steps (int): Number of steps between evaluations
         save_steps (int): Number of steps between model checkpoints
+        hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         wandb_key (str): Weights & Biases API key
     """
     # Logging in Hugging Face and WandB
@@ -84,17 +84,15 @@ def train(
         try:
             huggingface_hub.login(token=hf_token)
         except Exception as e:
-            print(f"Error logging into Hugging Face. Check your token.")
-            sys.exit(1)
+            raise RuntimeError("Error logging into Hugging Face. Check your token.")
         
     if wandb_key is not None:
         try:
             wandb.login(key=wandb_key)
             wandb.init(project=project_name, name=run_name)
         except Exception as e:
-            print(f"Error logging into wanddb. Check your key.{e}")
-            sys.exit(1)
-
+            raise RuntimeError(f"Error logging into wanddb. Check your key.{e}")
+        
     # Loading the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     tokenizer.pad_token = "<|finetune_right_pad_id|>"
@@ -171,9 +169,8 @@ def train(
         train_dataset = dataset["train"].shuffle(seed=42)
         dev_dataset = dataset["validation"].shuffle(seed=42)
     except Exception as e:
-        print(f"Error loading dataset. Check your data paths.")
-        sys.exit(1)
-
+        raise RuntimeError("Error loading dataset. Check your data paths.")
+        
 
     # Setting training arguments
     max_seq_length = max_sequence_length

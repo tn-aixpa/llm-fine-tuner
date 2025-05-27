@@ -17,7 +17,6 @@ from datasets import Dataset, load_dataset
 import sys
 
 def train(
-    hf_token: str = None,
     model_id: str,
     from_base: int,
     hf_dataset_name = str,
@@ -44,6 +43,7 @@ def train(
     logging_steps: int,
     eval_steps: int,
     save_steps: int,
+    hf_token: str = None,
     wandb_key: str = None
 ) -> None:
     """

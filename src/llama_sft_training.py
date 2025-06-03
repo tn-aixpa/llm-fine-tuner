@@ -16,7 +16,7 @@ from datasets import Dataset, load_dataset
 import sys
 
 def train(
-     model_id: str,
+    model_id: str,
     from_base: int,
     hf_dataset_name: str,
     train_data_path: str,
@@ -255,20 +255,29 @@ def train_and_log_model(
 
     output_dir = '/local_data/checkpoints/ground'
     final_dir = 'local_data/weights/ground'    
-        
+
+    hf_token = None
+    wandb_key = None
+    try:    
+        hf_token = project.get_secret("HF_TOKEN").read_secret_value()
+    except Exception:
+        pass
+
+    try:    
+        wandb_key = project.get_secret("WANDB_KEY").read_secret_value()
+    except Exception:
+        pass
+    
     train(
         model_id, 
         from_base, 
         hf_dataset_name,
-        hf_dataset_name,
         train_data_path,
         dev_data_path,
-        
         output_dir,
         final_dir,
         wandb_project,
         wandb_run,
-
         quantization,
         lora_rank,
         lora_alpha,
@@ -286,7 +295,7 @@ def train_and_log_model(
         logging_steps,
         eval_steps,
         save_steps,
-        hf_token,
-        wandb_key
+        hf_token=hf_token,
+        wandb_key=wandb_key
     )
     

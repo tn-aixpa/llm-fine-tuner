@@ -210,35 +210,86 @@ def train(
     trainer.train()
     model.save_pretrained(final_dir)
 
-# if __name__ == "__main__":
-#     # For local testing/debugging
-#     train(
-#         hf_token=" ",
-#         wandb_key=" ",
-#         model_id="meta-llama/Llama-3.1-8B-Instruct",
-#         from_base=0,
-#         hf_dataset_name="LanD-FBK/AIxPA_Dialogue_Dataset",
-#         train_data_path="data_AmiciFamiglia_only_ground/train.json",
-#         dev_data_path="data_AmiciFamiglia_only_ground/validation.json",
-#         output_dir="checkpoints/Llama-3.1-8B-Instruct/AmiciFamiglia_only_ground",
-#         final_dir="weights/Llama-3.1-8B-Instruct/run_AmiciFamiglia_only_groundfamily_ground",
-#         project_name="AmiciFamiglia_only_groundd",
-#         run_name="Llama-3.1-8B-Instruct_AmiciFamiglia_only_ground",
-#         quantization=4,
-#         lora_rank=32,
-#         lora_alpha=64,
-#         lora_dropout=0,
-#         max_sequence_length=2300,
-#         early_stopping_patience=10,
-#         learning_rate=5e-5,
-#         scheduler_type="cosine",
-#         train_batch_size=2,
-#         eval_batch_size=2,
-#         grad_accum_steps=3,
-#         num_epochs=5,
-#         weight_decay=0.01,
-#         warmup_ratio=0.03,
-#         logging_steps=20,
-#         eval_steps=20,
-#         save_steps=20,
-#     )
+def train_and_log_model(
+    project,
+    model_id: str,
+    hf_dataset_name: str,
+    train_data_path: str,
+    dev_data_path: str,
+    from_base: int = 0,
+    quantization: int = 4,
+    lora_rank: int = 32,
+    lora_alpha: int = 64,
+    lora_dropout: float = 0,
+    max_sequence_length: int = 2300,
+    early_stopping_patience: int = 10,
+    learning_rate: float = 5e-5,
+    scheduler_type: str = "cosine",
+    train_batch_size: int = 2,
+    eval_batch_size: int = 2,
+    grad_accum_steps: int = 3,
+    num_epochs: int = 5,
+    weight_decay: float = 0.01,
+    warmup_ratio: float = 0.03,
+    logging_steps: int = 20,
+    eval_steps: int = 20,
+    save_steps: int = 20,
+    hf_token: str = None,
+    wandb_key: str = None):
+    """
+    Train the LLM model with the given dataset and configuration.
+
+    Args:
+        model_id (str): Model ID
+        from_base (int): From Base? (0 or 1)
+        hf_dataset_name (str): Name of the dataset on Hugging Face Hub.
+        train_data_path (str): Training dataset path
+        dev_data_path (str): Dev dataset path
+        quantization (int): Quantization: 0 if none, 4 for 4bit quantization
+        lora_rank (int): LoRA rank
+        lora_alpha (int): LoRA alpha
+        lora_dropout (float): LoRA dropout rate
+        max_sequence_length (int): Maximum sequence length
+        early_stopping_patience (int): Early stopping patience
+        learning_rate (float): Learning rate for training
+        scheduler_type (str): Learning rate scheduler type
+        train_batch_size (int): Training batch size
+        eval_batch_size (int): Evaluation batch size
+        grad_accum_steps (int): Gradient accumulation steps
+        num_epochs (int): Number of training epochs
+        weight_decay (float): Weight decay for optimizer
+        warmup_ratio (float): Warmup ratio for learning rate schedule
+        logging_steps (int): Number of steps between logging
+        eval_steps (int): Number of steps between evaluations
+        save_steps (int): Number of steps between model checkpoints
+        hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
+        wandb_key (str): Weights & Biases API key (optional)
+    """
+    train(
+        model_id, 
+        from_base, 
+        hf_dataset_name,
+        hf_dataset_name,
+        train_data_path,
+        dev_data_path,
+        quantization,
+        lora_rank,
+        lora_alpha,
+        lora_dropout,
+        max_sequence_length,
+        early_stopping_patience,
+        learning_rate,
+        scheduler_type,
+        train_batch_size,
+        eval_batch_size,
+        grad_accum_steps,
+        num_epochs,
+        weight_decay,
+        warmup_ratio,
+        logging_steps,
+        eval_steps,
+        save_steps,
+        hf_token,
+        wandb_key
+    )
+    

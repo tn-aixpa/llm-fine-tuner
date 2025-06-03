@@ -19,11 +19,11 @@ AIxPA
 
 ## Usage
 
-Tool usage documentation [here](./RUN.md).
+Tool usage documentation [here](./docs/RUN.md).
 
 ## How To
 
-- [Data Overview, Dataset Preparation and Token Count Analysis.](./DATASET.md)
+- [Data Overview, Dataset Preparation and Token Count Analysis.](./docs/howto/DATASET.md)
 
 
 ## License

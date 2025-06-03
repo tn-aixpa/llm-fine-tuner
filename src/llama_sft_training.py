@@ -2,7 +2,6 @@ import json
 import torch
 import huggingface_hub
 import wandb
-import utils
 import os
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer, SFTConfig
@@ -145,21 +144,6 @@ def train(
         ],
     )
     model = get_peft_model(model, peft_config)
-
-    # Load datasets
-    # with open(train_data_path, "r") as file:
-    #     data = json.load(file)
-    #     train_dataset = Dataset.from_list(data)
-    #     train_dataset = train_dataset.shuffle(seed=42)
-        
-    # train_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
-
-    # with open(dev_data_path, "r") as file:
-    #     data = json.load(file)
-    #     dev_dataset = Dataset.from_list(data)
-    #     dev_dataset = dev_dataset.shuffle(seed=42)
-
-    # dev_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
 
     try:
         dataset = load_dataset(hf_dataset_name, data_files={

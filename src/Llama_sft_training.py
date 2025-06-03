@@ -235,7 +235,10 @@ def train_and_log_model(
     eval_steps: int = 20,
     save_steps: int = 20,
     hf_token: str = None,
-    wandb_key: str = None):
+    wandb_key: str = None,
+    wandb_project: str = None,
+    wandb_run: str = None
+    ):
     """
     Train the LLM model with the given dataset and configuration.
 
@@ -265,6 +268,10 @@ def train_and_log_model(
         hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         wandb_key (str): Weights & Biases API key (optional)
     """
+
+    output_dir = '/local_data/checkpoints/ground'
+    final_dir = 'local_data/weights/ground'    
+        
     train(
         model_id, 
         from_base, 
@@ -272,6 +279,12 @@ def train_and_log_model(
         hf_dataset_name,
         train_data_path,
         dev_data_path,
+        
+        output_dir,
+        final_dir,
+        wandb_project,
+        wandb_run,
+
         quantization,
         lora_rank,
         lora_alpha,

@@ -11,8 +11,9 @@ if [ "$FROM_BASE" -eq 0 ]; then
 fi
 
 # Hugging Face API token
-HF_TOKEN=" " # ADD YOUR TOKEN
-WANDB_KEY=" " # ADD YOUR TOKEN
+HF_TOKEN="" # ADD YOUR TOKEN
+WANDB_KEY="" # ADD YOUR TOKEN
+Use_WANDB=False 
 
 # Model and dataset paths
 MODEL_ID="meta-llama/${model}"
@@ -49,7 +50,7 @@ SAVE_STEPS=20
 OUTPUT_DIR="checkpoints/${model}/AmiciFamiglia_only_ground"
 FINAL_DIR="weights/${model}/run_AmiciFamiglia_only_groundfamily_ground"
 PROJECT_NAME="AmiciFamiglia_only_groundd"
-RUN_NAME="${model}_AmiciFamiglia_only_ground"
+#RUN_NAME="${model}_AmiciFamiglia_only_ground"
 
 # Modify based on base model
 if [ "$FROM_BASE" -eq 1 ]; then
@@ -65,6 +66,7 @@ clear
 echo "Launching training with the following parameters:"
 echo "  Model ID: $MODEL_ID"
 echo "  HF Dataset Name: $HF_DATASET_NAME"
+echo "  From Use Wandb: $Use_WANDB"
 echo "  Train Data Path: $TRAIN_DATA_PATH"
 echo "  Dev Data Path: $DEV_DATA_PATH"
 echo "  Output Directory: $OUTPUT_DIR"
@@ -96,6 +98,7 @@ export PYTHONPATH=/data:$PYTHONPATH
 python -c "from Llama_sft_training import train; train(\
     hf_token='$HF_TOKEN',\
     wandb_key='$WANDB_KEY',\
+    use_wandb=$Use_WANDB,\
     model_id='$MODEL_ID',\
     from_base=$FROM_BASE,\
     hf_dataset_name='$HF_DATASET_NAME',\

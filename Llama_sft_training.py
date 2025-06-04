@@ -1,7 +1,6 @@
 import json
 import torch
 import huggingface_hub
-import wandb
 import utils
 import os
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
@@ -43,6 +42,7 @@ def train(
     logging_steps: int,
     eval_steps: int,
     save_steps: int,
+    use_wandb: bool = False,
     hf_token: str = None,
     wandb_key: str = None
 ) -> None:
@@ -76,6 +76,7 @@ def train(
         logging_steps (int): Number of steps between logging
         eval_steps (int): Number of steps between evaluations
         save_steps (int): Number of steps between model checkpoints
+        use_wandb (bool): Set to True to enable Weights & Biases logging. If False (default), training runs without logging to wandb.
         hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         wandb_key (str): Weights & Biases API key
     """
@@ -86,12 +87,18 @@ def train(
         except Exception as e:
             raise RuntimeError("Error logging into Hugging Face. Check your token.")
         
-    if wandb_key is not None:
+    if use_wandb and wandb_key:
+        import wandb
         try:
-            wandb.login(key=wandb_key)
+            wandb.login(key=wandb_key, relogin=True)
             wandb.init(project=project_name, name=run_name)
+            report_to = "wandb"
         except Exception as e:
             raise RuntimeError(f"Error logging into wanddb. Check your key.{e}")
+            report_to = None
+    else:
+        os.environ["WANDB_MODE"] = "disabled"
+        report_to = None
         
     # Loading the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -185,7 +192,7 @@ def train(
         args=SFTConfig(
             max_seq_length=max_seq_length,
             dataset_text_field="text",
-            report_to="wandb",
+            report_to = report_to,
             learning_rate=learning_rate,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=train_batch_size,
@@ -215,6 +222,7 @@ def train(
 #     train(
 #         hf_token=" ",
 #         wandb_key=" ",
+#         use_wandb=False,
 #         model_id="meta-llama/Llama-3.1-8B-Instruct",
 #         from_base=0,
 #         hf_dataset_name="LanD-FBK/AIxPA_Dialogue_Dataset",

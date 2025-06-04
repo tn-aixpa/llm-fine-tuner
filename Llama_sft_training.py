@@ -92,13 +92,13 @@ def train(
         try:
             wandb.login(key=wandb_key, relogin=True)
             wandb.init(project=project_name, name=run_name)
-            report_to = "wandb"
+            report_to = ["wandb"]
         except Exception as e:
             raise RuntimeError(f"Error logging into wanddb. Check your key.{e}")
-            report_to = None
+            report_to = []
     else:
         os.environ["WANDB_MODE"] = "disabled"
-        report_to = None
+        report_to = []
         
     # Loading the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)

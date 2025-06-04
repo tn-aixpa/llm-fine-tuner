@@ -90,7 +90,7 @@ def train(
             wandb.login(key=wandb_key)
             wandb.init(project=project_name, name=run_name)
         except Exception as e:
-            raise RuntimeError(f"Error logging into wanddb. Check your key.{e}")
+            print("WandB not configured")
         
     # Loading the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -169,7 +169,7 @@ def train(
         args=SFTConfig(
             max_seq_length=max_seq_length,
             dataset_text_field="text",
-            report_to="wandb",
+            report_to="wandb" if wandb_key is not None else None,
             learning_rate=learning_rate,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=train_batch_size,
@@ -196,6 +196,7 @@ def train(
 
 def train_and_log_model(
     project,
+    target_model_name: str,
     model_id: str,
     hf_dataset_name: str,
     train_data_path: str,
@@ -298,4 +299,32 @@ def train_and_log_model(
         hf_token=hf_token,
         wandb_key=wandb_key
     )
+
+    model_params = {
+        "quantization": quantization,
+        "lora_rank": lora_rank,
+        "lora_alpha": lora_alpha,
+        "lora_dropout": lora_dropout,
+        "max_sequence_length": max_sequence_length,
+        "early_stopping_patience": early_stopping_patience,
+        "learning_rate": learning_rate,
+        "scheduler_type": scheduler_type,
+        "train_batch_size": train_batch_size,
+        "eval_batch_size": eval_batch_size,
+        "grad_accum_steps": grad_accum_steps,
+        "num_epochs": num_epochs,
+        "weight_decay": weight_decay,
+        "warmup_ratio": warmup_ratio,
+        "logging_steps": logging_steps,
+        "eval_steps": eval_steps,
+        "save_steps": save_steps
+        
+    }
     
+    project.log_model(
+        name=target_model_name,
+        kind="huggingface",
+        base_model=model_id,
+        parameters=model_params,
+        source=final_dir +"/",
+    )      

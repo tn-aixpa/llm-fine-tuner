@@ -1,8 +1,8 @@
 import json
 import torch
 import huggingface_hub
-import wandb
 import os
+import wandb
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer, SFTConfig
 from transformers import (
@@ -87,10 +87,13 @@ def train(
         
     if wandb_key is not None:
         try:
+            "Wandb configuration initialization..."
             wandb.login(key=wandb_key)
             wandb.init(project=project_name, name=run_name)
         except Exception as e:
             print("WandB not configured")
+    else:
+        wandb.init(mode="disabled")
         
     # Loading the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -99,7 +102,7 @@ def train(
 
     # Loading the model, applying quantization if requested
     if quantization == 4:
-        print("4bit quantization")
+        print("4bit quantization applied")
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -169,7 +172,7 @@ def train(
         args=SFTConfig(
             max_seq_length=max_seq_length,
             dataset_text_field="text",
-            report_to="wandb" if wandb_key is not None else None,
+            report_to="wandb" if wandb_key is not None else "none",
             learning_rate=learning_rate,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=train_batch_size,

@@ -50,7 +50,7 @@ SAVE_STEPS=20
 OUTPUT_DIR="checkpoints/${model}/AmiciFamiglia_only_ground"
 FINAL_DIR="weights/${model}/run_AmiciFamiglia_only_groundfamily_ground"
 PROJECT_NAME="AmiciFamiglia_only_groundd"
-#RUN_NAME="${model}_AmiciFamiglia_only_ground"
+RUN_NAME="${model}_AmiciFamiglia_only_ground"
 
 # Modify based on base model
 if [ "$FROM_BASE" -eq 1 ]; then

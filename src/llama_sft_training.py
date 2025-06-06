@@ -91,7 +91,7 @@ def train(
             wandb.login(key=wandb_key)
             wandb.init(project=project_name, name=run_name)
         except Exception as e:
-            print("WandB not configured")
+            raise RuntimeError("Error logging into WandB Face. Check your key.")
     else:
         wandb.init(mode="disabled")
         
@@ -206,24 +206,22 @@ def train_and_log_model(
     dev_data_path: str,
     from_base: int = 0,
     quantization: int = 4,
-    lora_rank: int = 32,
-    lora_alpha: int = 64,
+    lora_rank: int = 16,
+    lora_alpha: int = 16,
     lora_dropout: float = 0,
-    max_sequence_length: int = 2300,
-    early_stopping_patience: int = 10,
+    max_sequence_length: int =  6500,
+    early_stopping_patience: int = 5,
     learning_rate: float = 5e-5,
     scheduler_type: str = "cosine",
-    train_batch_size: int = 2,
+    train_batch_size: int = 3,
     eval_batch_size: int = 2,
     grad_accum_steps: int = 3,
-    num_epochs: int = 5,
+    num_epochs: int = 10,
     weight_decay: float = 0.01,
     warmup_ratio: float = 0.03,
     logging_steps: int = 20,
     eval_steps: int = 20,
     save_steps: int = 20,
-    hf_token: str = None,
-    wandb_key: str = None,
     wandb_project: str = None,
     wandb_run: str = None
     ):
@@ -253,12 +251,10 @@ def train_and_log_model(
         logging_steps (int): Number of steps between logging
         eval_steps (int): Number of steps between evaluations
         save_steps (int): Number of steps between model checkpoints
-        hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
-        wandb_key (str): Weights & Biases API key (optional)
     """
 
-    output_dir = '/local_data/checkpoints/ground'
-    final_dir = 'local_data/weights/ground'    
+    output_dir = '/app/local_data/checkpoints/ground'
+    final_dir = '/app/local_data/weights/ground'    
 
     hf_token = None
     wandb_key = None

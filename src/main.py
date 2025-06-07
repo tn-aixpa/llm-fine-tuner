@@ -22,7 +22,6 @@ def upload_model(model_name, project_name, model_id, model_params, src_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train LLM with SFT and LoRA")
     parser.add_argument("--model_id", type=str, required=True, help="Model ID")
-    parser.add_argument("--model_name", type=str, required=True, help="Name for the target model")
     parser.add_argument("--from_base", type=int, required=False, default=0, help="From Base? (0 or 1)")
     parser.add_argument("--hf_dataset_name", type=str, required=True, help="Hugging Face dataset name")
     parser.add_argument("--train_data_path", type=str, required=True, help="Training dataset path")
@@ -48,8 +47,14 @@ if __name__ == "__main__":
     parser.add_argument("--logging_steps", type=int, required=False, default=20, help="Logging steps")
     parser.add_argument("--eval_steps", type=int, required=False, default=20, help="Eval steps")
     parser.add_argument("--save_steps", type=int, required=False, default=20, help="Save steps")
+    parser.add_argument("--log_model", action="store_true", help="If model should be logged to DH")
+    parser.add_argument("--model_name", type=str, required=False, help="Name for the target model. Required if model is logged (--log_model is set)")
 
     args = parser.parse_args()
+
+    if args.log_model:
+        if args.model_name is None:
+            raise ValueError("Model name is required if --log_model is set")
 
     hf_token = os.environ.get("HF_TOKEN")
     wandb_key = os.environ.get("WANDB_KEY")
@@ -86,30 +91,32 @@ if __name__ == "__main__":
         wandb_key=wandb_key
     )
 
-    model_params = {
-        "quantization": args.quantization,
-        "lora_rank": args.lora_rank,
-        "lora_alpha": args.lora_alpha,
-        "lora_dropout": args.lora_dropout,
-        "max_sequence_length": args.max_sequence_length,
-        "early_stopping_patience": args.early_stopping_patience,
-        "learning_rate": args.learning_rate,
-        "scheduler_type": args.scheduler_type,
-        "train_batch_size": args.train_batch_size,
-        "eval_batch_size": args.eval_batch_size,
-        "grad_accum_steps": args.grad_accum_steps,
-        "num_epochs": args.num_epochs,
-        "weight_decay": args.weight_decay,
-        "warmup_ratio": args.warmup_ratio,
-        "logging_steps": args.logging_steps,
-        "eval_steps": args.eval_steps,
-        "save_steps": args.save_steps
-    }
+    if args.log_model:
+    
+        model_params = {
+            "quantization": args.quantization,
+            "lora_rank": args.lora_rank,
+            "lora_alpha": args.lora_alpha,
+            "lora_dropout": args.lora_dropout,
+            "max_sequence_length": args.max_sequence_length,
+            "early_stopping_patience": args.early_stopping_patience,
+            "learning_rate": args.learning_rate,
+            "scheduler_type": args.scheduler_type,
+            "train_batch_size": args.train_batch_size,
+            "eval_batch_size": args.eval_batch_size,
+            "grad_accum_steps": args.grad_accum_steps,
+            "num_epochs": args.num_epochs,
+            "weight_decay": args.weight_decay,
+            "warmup_ratio": args.warmup_ratio,
+            "logging_steps": args.logging_steps,
+            "eval_steps": args.eval_steps,
+            "save_steps": args.save_steps
+        }
 
-    upload_model(
-        model_name=args.model_name,
-        project_name=project_name,
-        model_id=args.model_id,
-        model_params=args.model_params,
-        src_path=args.src_path
-    )
+        upload_model(
+            model_name=args.model_name,
+            project_name=project_name,
+            model_id=args.model_id,
+            parameters=args.model_params,
+            src_path=args.src_path
+        )

@@ -199,7 +199,7 @@ def train(
 
 def train_and_log_model(
     project,
-    target_model_name: str,
+    model_name: str,
     model_id: str,
     hf_dataset_name: str,
     train_data_path: str,
@@ -230,6 +230,7 @@ def train_and_log_model(
 
     Args:
         model_id (str): Model ID
+        model_name (str): name of the model to log
         from_base (int): From Base? (0 or 1)
         hf_dataset_name (str): Name of the dataset on Hugging Face Hub.
         train_data_path (str): Training dataset path
@@ -321,7 +322,7 @@ def train_and_log_model(
     }
     
     project.log_model(
-        name=target_model_name,
+        name=model_name,
         kind="huggingface",
         base_model=model_id,
         parameters=model_params,

@@ -19,11 +19,12 @@ AIxPA
 
 ## Usage
 
-Tool usage documentation [here](./docs/RUN.md).
+Tool usage documentation [here](./docs/usage.md).
 
 ## How To
-
-- [Data Overview, Dataset Preparation and Token Count Analysis.](./docs/howto/DATASET.md)
+- [Data Overview, Dataset Preparation and Token Count Analysis.](./docs/howto/data.md)
+- [Train LLM Adapter with the platform](./docs/howto/train.md)
+- [Train with Docker container](./docs/howto/train_container.md)
 
 
 ## License

@@ -1,0 +1,55 @@
+ai: NLP
+domain: PA
+usages: ./docs/usage.md
+metadata:
+  name: LLM Fine Tuner
+  description: >
+    A lightweight framework for fine-tuning of LLMs, designed for efficient and reproducible training.
+  kind: product-template
+  ai: NLP
+  domain: PA
+  license: Apache License 2.0
+usage:
+  target_users:
+    - PA operators (municipalities, regional operators, etc.)
+  applications:
+    - Public service chatbots.
+  documentation_links:
+    - usage: ./docs/usage.md
+howto:
+  - title: prepare and analyze data
+    ref: ./docs/howto/data.md
+  - title: Train the model within AIxPA platform
+    ref: ./docs/howto/train.md
+  - title: Train the model with Docker container
+    ref: ./docs/howto/train_container.md
+models:
+  - id: llmpa
+    kind: huggingface
+    name: text generation adapter
+operations:
+  - id: train_and_log_model
+    name: Train the classifier model
+    kind: job
+    task: training
+    implementation:
+      framework: aixpa
+      spec:
+        kind: python 
+        code_src: "git+https://github.com/tn-aixpa/llm-fine-tuner" 
+        handler: "src.llama_sft_training:train_and_log_model"
+        python_version: PYTHON3_10
+        requirements: "pandas==2.1.4", "tqdm==4.66.5", "openai==1.8.0", "spacy==3.7.5", "torch==2.5.1", "llama-index==0.9.33", "huggingface-hub==0.27.1", "rank-bm25==0.2.2", "sentence-transformers==4.1.0", "ranx==0.3.20", "transformers==4.48.0", "openpyxl==3.1.5", "rouge-score==0.1.2", "FlagEmbedding==1.3.4", "wandb==0.19.11", "nltk==3.8.1", "trl==0.13", "bitsandbytes==0.45.5", "datasets==3.6.0"
+    outputs:
+      - llmpa
+  - id: train_container
+    name: Train the classifier model with docker container
+    kind: job
+    task: training
+    implementation:
+      framework: aixpa
+      spec:
+        kind: container 
+        image: "ghcr.io/tn-aixpa/llm-fine-tuner:latest" 
+    outputs:
+      - llmpa

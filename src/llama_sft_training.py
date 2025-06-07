@@ -1,8 +1,8 @@
 import json
 import torch
 import huggingface_hub
-import utils
 import os
+import wandb
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer, SFTConfig
 from transformers import (
@@ -16,7 +16,7 @@ from datasets import Dataset, load_dataset
 import sys
 
 def train(
-     model_id: str,
+    model_id: str,
     from_base: int,
     hf_dataset_name: str,
     train_data_path: str,
@@ -42,7 +42,6 @@ def train(
     logging_steps: int,
     eval_steps: int,
     save_steps: int,
-    use_wandb: bool = False,
     hf_token: str = None,
     wandb_key: str = None
 ) -> None:
@@ -76,7 +75,6 @@ def train(
         logging_steps (int): Number of steps between logging
         eval_steps (int): Number of steps between evaluations
         save_steps (int): Number of steps between model checkpoints
-        use_wandb (bool): Set to True to enable Weights & Biases logging. If False (default), training runs without logging to wandb.
         hf_token (str): Hugging Face API token. Required only for private models; not needed when using public models.
         wandb_key (str): Weights & Biases API key
     """
@@ -87,18 +85,15 @@ def train(
         except Exception as e:
             raise RuntimeError("Error logging into Hugging Face. Check your token.")
         
-    if use_wandb and wandb_key:
-        import wandb
+    if wandb_key is not None:
         try:
-            wandb.login(key=wandb_key, relogin=True)
+            "Wandb configuration initialization..."
+            wandb.login(key=wandb_key)
             wandb.init(project=project_name, name=run_name)
-            report_to = ["wandb"]
         except Exception as e:
-            raise RuntimeError(f"Error logging into wanddb. Check your key.{e}")
-            report_to = []
+            raise RuntimeError("Error logging into WandB Face. Check your key.")
     else:
-        os.environ["WANDB_MODE"] = "disabled"
-        report_to = []
+        wandb.init(mode="disabled")
         
     # Loading the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -107,7 +102,7 @@ def train(
 
     # Loading the model, applying quantization if requested
     if quantization == 4:
-        print("4bit quantization")
+        print("4bit quantization applied")
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -153,21 +148,6 @@ def train(
     )
     model = get_peft_model(model, peft_config)
 
-    # Load datasets
-    # with open(train_data_path, "r") as file:
-    #     data = json.load(file)
-    #     train_dataset = Dataset.from_list(data)
-    #     train_dataset = train_dataset.shuffle(seed=42)
-        
-    # train_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
-
-    # with open(dev_data_path, "r") as file:
-    #     data = json.load(file)
-    #     dev_dataset = Dataset.from_list(data)
-    #     dev_dataset = dev_dataset.shuffle(seed=42)
-
-    # dev_dataset = utils.prepare_dataset(data=data, tokenizer=tokenizer, from_base=False if args.from_base==0 else True, guidelines=guidelines if args.guidelines==1 else None, previous_messages=args.previous_messages).shuffle(seed=42)
-
     try:
         dataset = load_dataset(hf_dataset_name, data_files={
         "train": train_data_path,
@@ -192,7 +172,7 @@ def train(
         args=SFTConfig(
             max_seq_length=max_seq_length,
             dataset_text_field="text",
-            report_to = report_to,
+            report_to="wandb" if wandb_key is not None else "none",
             learning_rate=learning_rate,
             lr_scheduler_type=scheduler_type,
             per_device_train_batch_size=train_batch_size,
@@ -217,36 +197,134 @@ def train(
     trainer.train()
     model.save_pretrained(final_dir)
 
-# if __name__ == "__main__":
-#     # For local testing/debugging
-#     train(
-#         hf_token=" ",
-#         wandb_key=" ",
-#         use_wandb=False,
-#         model_id="meta-llama/Llama-3.1-8B-Instruct",
-#         from_base=0,
-#         hf_dataset_name="LanD-FBK/AIxPA_Dialogue_Dataset",
-#         train_data_path="data_AmiciFamiglia_only_ground/train.json",
-#         dev_data_path="data_AmiciFamiglia_only_ground/validation.json",
-#         output_dir="checkpoints/Llama-3.1-8B-Instruct/AmiciFamiglia_only_ground",
-#         final_dir="weights/Llama-3.1-8B-Instruct/run_AmiciFamiglia_only_groundfamily_ground",
-#         project_name="AmiciFamiglia_only_groundd",
-#         run_name="Llama-3.1-8B-Instruct_AmiciFamiglia_only_ground",
-#         quantization=4,
-#         lora_rank=32,
-#         lora_alpha=64,
-#         lora_dropout=0,
-#         max_sequence_length=2300,
-#         early_stopping_patience=10,
-#         learning_rate=5e-5,
-#         scheduler_type="cosine",
-#         train_batch_size=2,
-#         eval_batch_size=2,
-#         grad_accum_steps=3,
-#         num_epochs=5,
-#         weight_decay=0.01,
-#         warmup_ratio=0.03,
-#         logging_steps=20,
-#         eval_steps=20,
-#         save_steps=20,
-#     )
+def train_and_log_model(
+    project,
+    model_name: str,
+    model_id: str,
+    hf_dataset_name: str,
+    train_data_path: str,
+    dev_data_path: str,
+    from_base: int = 0,
+    quantization: int = 4,
+    lora_rank: int = 16,
+    lora_alpha: int = 16,
+    lora_dropout: float = 0,
+    max_sequence_length: int =  6500,
+    early_stopping_patience: int = 5,
+    learning_rate: float = 5e-5,
+    scheduler_type: str = "cosine",
+    train_batch_size: int = 3,
+    eval_batch_size: int = 2,
+    grad_accum_steps: int = 3,
+    num_epochs: int = 10,
+    weight_decay: float = 0.01,
+    warmup_ratio: float = 0.03,
+    logging_steps: int = 20,
+    eval_steps: int = 20,
+    save_steps: int = 20,
+    wandb_project: str = None,
+    wandb_run: str = None
+    ):
+    """
+    Train the LLM model with the given dataset and configuration.
+
+    Args:
+        model_id (str): Model ID
+        model_name (str): name of the model to log
+        from_base (int): From Base? (0 or 1)
+        hf_dataset_name (str): Name of the dataset on Hugging Face Hub.
+        train_data_path (str): Training dataset path
+        dev_data_path (str): Dev dataset path
+        quantization (int): Quantization: 0 if none, 4 for 4bit quantization
+        lora_rank (int): LoRA rank
+        lora_alpha (int): LoRA alpha
+        lora_dropout (float): LoRA dropout rate
+        max_sequence_length (int): Maximum sequence length
+        early_stopping_patience (int): Early stopping patience
+        learning_rate (float): Learning rate for training
+        scheduler_type (str): Learning rate scheduler type
+        train_batch_size (int): Training batch size
+        eval_batch_size (int): Evaluation batch size
+        grad_accum_steps (int): Gradient accumulation steps
+        num_epochs (int): Number of training epochs
+        weight_decay (float): Weight decay for optimizer
+        warmup_ratio (float): Warmup ratio for learning rate schedule
+        logging_steps (int): Number of steps between logging
+        eval_steps (int): Number of steps between evaluations
+        save_steps (int): Number of steps between model checkpoints
+    """
+
+    output_dir = '/app/local_data/checkpoints/ground'
+    final_dir = '/app/local_data/weights/ground'    
+
+    hf_token = None
+    wandb_key = None
+    try:    
+        hf_token = project.get_secret("HF_TOKEN").read_secret_value()
+    except Exception:
+        pass
+
+    try:    
+        wandb_key = project.get_secret("WANDB_KEY").read_secret_value()
+    except Exception:
+        pass
+    
+    train(
+        model_id, 
+        from_base, 
+        hf_dataset_name,
+        train_data_path,
+        dev_data_path,
+        output_dir,
+        final_dir,
+        wandb_project,
+        wandb_run,
+        quantization,
+        lora_rank,
+        lora_alpha,
+        lora_dropout,
+        max_sequence_length,
+        early_stopping_patience,
+        learning_rate,
+        scheduler_type,
+        train_batch_size,
+        eval_batch_size,
+        grad_accum_steps,
+        num_epochs,
+        weight_decay,
+        warmup_ratio,
+        logging_steps,
+        eval_steps,
+        save_steps,
+        hf_token=hf_token,
+        wandb_key=wandb_key
+    )
+
+    model_params = {
+        "quantization": quantization,
+        "lora_rank": lora_rank,
+        "lora_alpha": lora_alpha,
+        "lora_dropout": lora_dropout,
+        "max_sequence_length": max_sequence_length,
+        "early_stopping_patience": early_stopping_patience,
+        "learning_rate": learning_rate,
+        "scheduler_type": scheduler_type,
+        "train_batch_size": train_batch_size,
+        "eval_batch_size": eval_batch_size,
+        "grad_accum_steps": grad_accum_steps,
+        "num_epochs": num_epochs,
+        "weight_decay": weight_decay,
+        "warmup_ratio": warmup_ratio,
+        "logging_steps": logging_steps,
+        "eval_steps": eval_steps,
+        "save_steps": save_steps
+        
+    }
+    
+    project.log_model(
+        name=model_name,
+        kind="huggingface",
+        base_model=model_id,
+        parameters=model_params,
+        source=final_dir +"/",
+    )      

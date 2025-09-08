@@ -11,10 +11,38 @@ from transformers import (
     BitsAndBytesConfig,
     TrainingArguments,
     EarlyStoppingCallback,
+    TrainerCallback
 )
 from datasets import Dataset, load_dataset
 import sys
 
+class LoggingCallback(TrainerCallback):
+
+    def __init__(self, run):
+        self.run = run
+
+    def on_log(self, args, state, control, logs, model=None, **kwargs):
+        metrics = {}
+        for k, v in logs.items():
+            if isinstance(v, (int, float)):
+                metrics[k] = v
+            elif isinstance(v, torch.Tensor) and v.numel() == 1:
+                metrics[k] = v.item()
+            else:
+                logger.warning(
+                    f'Trainer is attempting to log a value of "{v}" of type {type(v)} for key "{k}" as a metric. '
+                    "MLflow's log_metric() only accepts float and int types so we dropped this attribute."
+                )
+            if k in metrics:
+                self.run.log_metric(k, metrics[k])
+
+def formatting_func(example):
+    output_texts = []
+    for i in range(len(example['question'])):
+        text = f"<|begin_of_text|><|start_header_id|>system<|end_header_id>\nYou are a helpful assistant.<|eot_id><|start_header_id|>user<|end_header_id>{example['question'][i]}<|eot_id><|start_header_id|>assistant<|end_header_id>{example['answer'][i]}<|eot_id>"
+        output_texts.append(text)
+    return output_texts
+    
 def train(
     model_id: str,
     from_base: int,
@@ -43,7 +71,8 @@ def train(
     eval_steps: int,
     save_steps: int,
     hf_token: str = None,
-    wandb_key: str = None
+    wandb_key: str = None,
+    logger: TrainerCallback = None
 ) -> None:
     """
     Train the LLM model with the given dataset and configuration.
@@ -162,13 +191,17 @@ def train(
     # Setting training arguments
     max_seq_length = max_sequence_length
     early_stopping = EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)
+    callbacks = [early_stopping]
+    if logger is not None:
+        callbacks.append(logger)
 
     trainer = SFTTrainer(
         model=model,
         processing_class=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
-        callbacks=[early_stopping],
+        callbacks=callbacks,
+        formatting_func=formatting_func,
         args=SFTConfig(
             max_seq_length=max_seq_length,
             dataset_text_field="text",
@@ -268,7 +301,7 @@ def train_and_log_model(
         wandb_key = project.get_secret("WANDB_KEY").read_secret_value()
     except Exception:
         pass
-    
+
     train(
         model_id, 
         from_base, 
@@ -297,7 +330,8 @@ def train_and_log_model(
         eval_steps,
         save_steps,
         hf_token=hf_token,
-        wandb_key=wandb_key
+        wandb_key=wandb_key,
+        logger=LoggingCallback(project.get_run(os.environ['RUN_ID']))
     )
 
     model_params = {

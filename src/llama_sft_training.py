@@ -355,10 +355,14 @@ def train_and_log_model(
         
     }
     
-    project.log_model(
+    model = project.log_model(
         name=model_name,
         kind="huggingface",
         base_model=model_id,
         parameters=model_params,
         source=final_dir +"/",
     )      
+    run = project.get_run(os.environ['RUN_ID'])
+    metrics = run.status.metrics
+    for k in metrics:
+        model.log_metric(k, metrics[k])

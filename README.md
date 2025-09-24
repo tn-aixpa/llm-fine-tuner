@@ -4,7 +4,7 @@ A lightweight framework for fine-tuning [`Llama-3.1-8B-Instruct`](https://huggin
 
 AIxPA
 
-- ``kind``: 
+- ``kind``: Product Template
 - ``ai``: NLP
 - ``domain``:  PA
 

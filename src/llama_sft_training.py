@@ -57,7 +57,7 @@ def train(
     lora_rank: int,
     lora_alpha: int,
     lora_dropout: float,
-    max_sequence_length: int,
+    max_sequence_length: int,   # <-- added
     early_stopping_patience: int,
     learning_rate: float,
     scheduler_type: str,
@@ -201,9 +201,9 @@ def train(
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
         callbacks=callbacks,
-        formatting_func=formatting_func,
+        # formatting_func=formatting_func,
         args=SFTConfig(
-            max_seq_length=max_seq_length,
+            max_length=max_seq_length,  # <-- changed from max_length
             dataset_text_field="text",
             report_to="wandb" if wandb_key is not None else "none",
             learning_rate=learning_rate,
@@ -316,7 +316,7 @@ def train_and_log_model(
         lora_rank,
         lora_alpha,
         lora_dropout,
-        max_sequence_length,
+        max_sequence_length,  # <-- now matches signature
         early_stopping_patience,
         learning_rate,
         scheduler_type,
@@ -339,7 +339,7 @@ def train_and_log_model(
         "lora_rank": lora_rank,
         "lora_alpha": lora_alpha,
         "lora_dropout": lora_dropout,
-        "max_sequence_length": max_sequence_length,
+        # "max_sequence_length": max_sequence_length,
         "early_stopping_patience": early_stopping_patience,
         "learning_rate": learning_rate,
         "scheduler_type": scheduler_type,

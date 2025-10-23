@@ -17,7 +17,8 @@ func = project.new_function(
     python_version="PYTHON3_10", 
     code_src="src/llama_sft_training.py",  
     handler="train_and_log_model",
-    requirements=["pandas==2.1.4", "tqdm==4.66.5", "openai==1.8.0", "spacy==3.7.5", "torch==2.5.1", "llama-index==0.9.33", "huggingface-hub==0.27.1", "rank-bm25==0.2.2", "sentence-transformers==4.1.0", "ranx==0.3.20", "transformers==4.48.0", "openpyxl==3.1.5", "rouge-score==0.1.2", "FlagEmbedding==1.3.4", "wandb==0.19.11", "nltk==3.8.1", "trl==0.13", "bitsandbytes==0.45.5", "datasets==3.6.0"]
+    requirements=["pandas==2.2.1", "tqdm==4.66.5", "openai==1.8.0", "spacy==3.7.5", "torch==2.5.1", "llama-index==0.9.33", "huggingface-hub>=0.34.0", "rank-bm25==0.2.2", "sentence-transformers==4.1.0", "ranx==0.3.20", "transformers==4.56.1", "openpyxl==3.1.5", "rouge-score==0.1.2", "FlagEmbedding==1.3.4", "wandb==0.19.11", "nltk==3.8.1", "trl==0.20", "bitsandbytes==0.45.5", "datasets==3.6.0", "mpi4py==4.1.0"]
+
 )
 ```
 
@@ -46,3 +47,5 @@ train_run = func.run(action="job",
                         "spec": { "size": "10Gi" }}]
 					)
 ```
+
+Please note that depending on the base model and the train data the amount of resources may vary. Adjust the size of the requested volume and be sure that sufficient amount of memory is provided. For the given example, for instance, around 40Gb of VRAM is required.
